@@ -1,0 +1,130 @@
+= Async Tracker Library
+Krishna Raman <kraman@gmail.com>
+
+:toc: manual
+:toclevels: 4
+:toc-placement: preamble
+
+The AsyncTracker API is the JavaScript interface which allows developers to be
+notified about key events in the lifetime of observed objects and scheduled
+asynchronous events.
+
+NOTE: Node performs a lot of asynchronous events internally, and use of this
+API may have a significant performance impact on your application.
+
+== Objectives
+
+The goal of this library is to enable node application monitoring tools and other libraries (such as continuous-storage, zones etc.) which require tracking information from within node. Currently each of these libraries monkey-patches the node API layer and uses closures to maintain context across async callbacks. While this works great in isolation, these libraries tend not to co-exist with each other very well. Each of these libraries also require slightly type of notifications.
+
+Recetly, some Node controbutors and users got together to decide their use cases around tracking and monitoring of node functions. This library attempts to solve some of the use cases discussed in that meeting. It is meant as a conversation stater and I would like to discuss any missing functionality or other feedback you have around this topic.
+
+The Async Tracker library provide a single interface on which other librares can be built. The use-cases captured in Async Tracker include:
+
+* Associating context which is carried across async callback boundries
+* Notification when async callback is scheduled
+** Optinally capturing significant arguments from the parent function
+* Notification of callback being triggered
+** Optionally allow running tasks before and after the callback
+* Notification when a callback is un-scheduled (timers, etc.)
+* Notification when `Observable` object are created or released
+
+== API Overview
+
+Async Tracker has 3 core APIs:
+
+. AsyncTracker: allows developers to register an object which will be notified of events
+. CallbackWrap: allows developers to wrap callback methods so thay trigger events when they are created, invoked or released.
+. Observable: allows developers to instrument their classes so they trigger events when they are created or released.
+
+=== AsyncTracker
+
+The AsyncTracker object is exposed as a global variable named `asyncTracker`.
+
+[[asynctrackerregisterlistenerlistenerobj-options]]
+==== asyncTracker.registerListener(listenerObj, options)
+
+`listenerObj`: An object which contains several optional fields. This listener will be associated with all async operations that will be scheduled and all objects that will be created.
+
+* `callbackCreated(fName, cbId, fData)`: A function which is called when an async callback is scheduled.
+** `fName`: A name of the function that scheduled the callback.
+** `cbId`: Unique ID of this callback
+** `fData`: If the listener specified interest in function arguments, `fData` will contain a map of the significant arguments
+* `invokeCallback(fName, cbId, next)`: A function can intercept the invocation of an async callback. This function behaves similar to Express middleware and you must call `next()` to continue invocation of the callback
+** `fName`: A name of the function that scheduled the callback.
+** `cbId`: Unique ID of this callback
+** `next`: The callback function to execute
+* `callbackReleased(fName, cbId)`: A function
+** `fName`: A name of the function that scheduled the callback.
+** `cbId`: Unique ID of this callback
+* `trackObject(obj)`: A function which is called when an Observable object is created
+** `obj`: The observable object
+* `releaseObject(obj)`: A function which is called when an Observable object is closed, destroyed or, explicitly released.
+** `obj`: The observable object
+
+`options`: Optional capabilities to associate with this listener
+
+* `errorHandler`: Boolean value indicates if this listener will catch Errors.
+* `funcArgs`: Boolean value indicates if this listener will receive function arguments (`fData`).
+
+WARNING: Be very careful about the implementation of these functions. They will be invoked often and can result in significant performance issues. Calling function that are async from these callbacks can result in an infinite loop
+
+[[asynctrackerremovelistenerlistenerobj]]
+==== asyncTracker.removeListener(listenerObj)
+
+Prevents the `listenerObj` from being associated with any future async callbacks or objects. Any async callbacks or objects already associated with the listener will continue to trigger.
+
+=== CallbackWrap
+
+The CallbackWrap API provides helper functions which can be used by developers to wrap callback functions so that they trigger the appropriate functions on `listenerObj` and maintain context.
+
+[[callbackwrapwrapcallbackfname-fargs-fcallback]]
+==== CallbackWrap.wrapCallback(fName, fArgs, fCallback)
+
+Developers can use this function to wrap a generic callback. This function will return a closure which will trigger the appropriate `listenerObj` functions.
+
+* `fName`: The name of function that uses this callback. Eg: fs.open
+* `fArgs`: Map of argument name to values. This will be passed to listeners that are interested in function arguments
+* `fCallback`: The callback function to be wrapped
+
+[[callbackwrap-wrapmethod-fmethod-argmap-callbackpos]]
+==== CallbackWrap.wrapMethod(fMethod, argMap, callbackPos)
+
+* `fMethod`: The method to be wrapped
+* `argMap`: Map of argument name to argument positions. This is used to construct the argument map for listeners that are interested in function arguments. If an argument is optional, it should be prefixed with `?`.
+* `callbackPos`: Optional position of the callback function. If not provided, it assumes the last argument is the callback function.
+
+[[callbackwrapwraprequestfmethod-arglist-callbackpos]]
+==== CallbackWrap.wrapRequest(fMethod, argList, callbackPos)
+
+* `fMethod`: The request method to be wrapped
+* `argList`: List of request argument names. This is used to construct the argument map for listeners that are interested in function arguments. If an argument is optional, it should be prefixed with `?`.
+* `callbackPos`: Optional position of the callback function. If not provided, it assumes the last argument is the callback function.
+
+=== Observable
+
+The Observable API allows objects to trigger events so that they can be tracked by `listenerObj`s.
+
+One place where the Observable API can be used is for Files. Node returns the file handle when you open a file. This library wraps the file handle and other interesting properties into a File object and exposes it via the Observable API. This also allows for additional behavior to be associated with the file object. For example, Zones uses this to be able to close the file handle before the zone exits.
+
+[[asynctracker-trackobject-obj]]
+==== asyncTracker.trackObject(obj)
+
+Associate `obj` with the currently active `listenerObj` and trigger the `trackObject` function.
+
+[[asynctracker-releaseobject-obj]]
+==== asyncTracker.releaseObject(obj)
+
+Un-associate `obj` with the `listenerObj` and trigger the `releaseObject` function.
+
+== Showcases
+
+.The following showcases highlight some features of this library
+. continuous-local-storage
+. basic tracing
+. zone
+
+== Implementation
+
+This library uses parts of the AsyncWrap API and monkey-patching to insert code into the Node core classes.
+
+AsyncWrap is a part of some very useful work that https://github.com/trevnorris[Trevor Norris] did while implementing Async Listener in v0.11. While the JS part of Aync Listeners is being removed, the AsyncWrap C++ classes remain. This library uses the unique IDs that AsyncWrap assigns to each handle to keep track of context across async boundries.
