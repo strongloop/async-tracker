@@ -46,7 +46,7 @@ Listener.prototype.objectReleased = function(obj) {
 }
 
 var listener = new Listener();
-asyncTracker.addListener(listener);
+asyncTracker.addListener(listener, 'listener');
 
 function closeCallback() {
 }
@@ -56,4 +56,4 @@ function openCallback(err, fd) {
 }
 
 fs.open(__filename, 'r', openCallback);
-asyncTracker.removeListener(listener);
+asyncTracker.removeListener('listener');

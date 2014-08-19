@@ -5,6 +5,7 @@ var cnt=0;
 var Listener = function(_expectEvents) {
   this.expectEvents = _expectEvents;
 }
+
 Listener.prototype.deferredCreated = function(fName, fId) {
   assert(this.expectEvents);
   cnt++;
@@ -28,8 +29,8 @@ var l1 = new Listener(true);
 var l2 = new Listener(true);
 var l3 = new Listener(false);
 
-asyncTracker.addListener(l1);
-asyncTracker.addListener(l2);
+asyncTracker.addListener(l1, 'l1');
+asyncTracker.addListener(l2, 'l2');
 process.nextTick(cb);
-asyncTracker.removeListener(l1);
-asyncTracker.addListener(l3);
+asyncTracker.removeListener('l1');
+asyncTracker.addListener(l3, 'l3');

@@ -31,6 +31,6 @@ function cb() {
 }
 
 var listener = new Listener();
-asyncTracker.addListener(listener);
+asyncTracker.addListener(listener, 'listener');
 h = setImmediate(cb);
 clearImmediate(h);

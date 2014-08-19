@@ -50,8 +50,9 @@ Async Tracker has 4 core APIs:
 
 The AsyncTracker object is exposed as a global variable named `asyncTracker`.
 
-==== asyncTracker.addListener(listenerObj)
+==== asyncTracker.addListener(listenerObj, [name])
 
+`name`: Optional. Listener name for the new listener, or an existing listener which should be replaced.
 `listenerObj`: An object which contains several optional fields. This listener will be associated with all async operations that will be scheduled and all objects that will be created.
 
 * `deferredCreated(fName, cbId, fData)`: A function which is called when an async callback is scheduled.
@@ -72,11 +73,13 @@ Other libraries can use this call to run their own code before and after functio
 * `releaseObject(obj)`: A function which is called when an Observable object is closed, destroyed or, explicitly released.
 ** `obj`: The observable object
 
+Returns the name of the listener that was added
+
 WARNING: Be very careful about the implementation of these functions. They will be invoked often and can result in significant performance issues. Calling function that are async from these callbacks can result in an infinite loop
 
-==== asyncTracker.removeListener(listenerObj)
+==== asyncTracker.removeListener(listenerName)
 
-Prevents the `listenerObj` from being associated with any future async callbacks or objects. Any async callbacks or objects already associated with the listener will continue to trigger.
+Prevents the `listenerObj` associated with `listenerName` from being associated with any future async callbacks or objects. Any async callbacks or objects already associated with the listener will continue to trigger.
 
 === AsyncTracker Trigger interface
 
