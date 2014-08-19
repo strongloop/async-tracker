@@ -15,7 +15,7 @@
     "async"
   ],
   "author": "Krishna Raman <kraman@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/kraman/async-tracker/issues"
   },
