@@ -1,0 +1,27 @@
+{
+  "name": "async-tracker",
+  "version": "0.0.0",
+  "description": "The AsyncTracker API is the JavaScript interface which allows developers to be notified about key events in the lifetime of observed objects and scheduled asynchronous events.",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/test-*.js",
+    "lint": "eslint **/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kraman/async-tracker"
+  },
+  "keywords": [
+    "async"
+  ],
+  "author": "Krishna Raman <kraman@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kraman/async-tracker/issues"
+  },
+  "homepage": "https://github.com/kraman/async-tracker",
+  "devDependencies": {
+    "eslint": "^0.7.4",
+    "tap": "^0.4.12"
+  }
+}
