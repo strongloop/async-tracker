@@ -50,6 +50,7 @@ Async Tracker has 4 core APIs:
 
 The AsyncTracker object is exposed as a global variable named `asyncTracker`.
 
+[[asynctrackeraddlistenerlistenerobj-name]]
 ==== asyncTracker.addListener(listenerObj, [name])
 
 `name`: Optional. Listener name for the new listener, or an existing listener which should be replaced.
@@ -59,9 +60,7 @@ The AsyncTracker object is exposed as a global variable named `asyncTracker`.
 ** `fName`: A name of the function that scheduled the callback.
 ** `cbId`: Unique ID of this callback
 ** `fData`: If the listener specified interest in function arguments, `fData` will contain a map of the significant arguments
-* `invokeDeferred(fName, cbId, next)`: A function can intercept the invocation of an async callback. This function behaves similar to Express middleware and you must call `next()` to continue invocation of the callback.
-
-Other libraries can use this call to run their own code before and after function execution. They may also choose to wrap the function invocation in a try/catch/finally block to catch and handle exceptions.
+* `invokeDeferred(fName, cbId, next)`: A function can intercept the invocation of an async callback. This function behaves similar to Express middleware and you must call `next()` to continue invocation of the callback. Other libraries can use this call to run their own code before and after function execution. They may also choose to wrap the function invocation in a try/catch/finally block to catch and handle exceptions.
 ** `fName`: A name of the function that scheduled the callback.
 ** `cbId`: Unique ID of this callback
 ** `next`: The callback function to execute
@@ -77,6 +76,7 @@ Returns the name of the listener that was added
 
 WARNING: Be very careful about the implementation of these functions. They will be invoked often and can result in significant performance issues. Calling function that are async from these callbacks can result in an infinite loop
 
+[[asynctrackerremovelistenerlistenername]]
 ==== asyncTracker.removeListener(listenerName)
 
 Prevents the `listenerObj` associated with `listenerName` from being associated with any future async callbacks or objects. Any async callbacks or objects already associated with the listener will continue to trigger.
@@ -85,6 +85,7 @@ Prevents the `listenerObj` associated with `listenerName` from being associated 
 
 These methods are intended to be called from inside node modules and will result in currosponding functions on the listener to be triggered.
 
+[[asynctrackerdeferredcreatedfname-cbid-fdata]]
 ==== AsyncTracker.deferredCreated(fName, cbId, fData)
 
 Called when a function is registered for deferred execution. This function may be executed one or more times in the future.
@@ -93,6 +94,7 @@ Called when a function is registered for deferred execution. This function may b
 * `cbId`: Unique ID of this callback
 * `fData`: If the listener specified interest in function arguments, `fData`
 
+[[asynctrackerrundeferredfname-cbid-next]]
 ==== AsyncTracker.runDeferred(fName, cbId, next)
 
 Called when a function needs to be invoked.
@@ -100,6 +102,7 @@ Called when a function needs to be invoked.
 * `fName`: A name of the function that scheduled the callback.
 * `cbId`: Unique ID of this callback
 
+[[asynctrackerdeferredreleasedfname-cbid]]
 ==== AsyncTracker.deferredReleased(fName, cbId)
 
 Called when a function is complete and will no longer be called in the future. 
@@ -113,10 +116,12 @@ The Observable API allows objects to trigger events so that they can be tracked 
 
 For example, when you open a file with Node, it returns the file handle. This library maintains a list of open handles as https://github.com/kraman/async-tracker/blob/master/lib/bindings/fs.js#L15[FDTracker objects] and triggers the Observable API events when a file is opened or closed. A library like Zones can then use this information to track and close file handles even if the user code has lost track of it.
 
+[[asynctrackertrackobjectobj]]
 ==== asyncTracker.trackObject(obj)
 
 Associate `obj` with the currently active `listenerObj` and trigger the `trackObject` function.
 
+[[asynctrackerreleaseobjectobj]]
 ==== asyncTracker.releaseObject(obj)
 
 Un-associate `obj` with the `listenerObj` and trigger the `releaseObject` function.
@@ -125,6 +130,7 @@ Un-associate `obj` with the `listenerObj` and trigger the `releaseObject` functi
 
 This API should be implemented by tracked objects if they wish to be cleaned up by modules like Zones or Domains when they exit. This API relies on the object also registering using the Observable APIs.
 
+[[objectdispose]]
 ==== Object.dispose()
 
 This method is called by Zones or similar libraries when they are exiting and waish to cleanup a tracked object.
@@ -133,6 +139,7 @@ This method is called by Zones or similar libraries when they are exiting and wa
 
 The Deferred API provides helper functions which can be used by developers to wrap callback functions so that they trigger the appropriate functions on `listenerObj` and maintain context.
 
+[[deferredwrapfname-fargs-fcallback]]
 ==== Deferred.wrap(fName, fArgs, fCallback)
 
 Developers can use this function to wrap a generic callback. This function will return a closure which will trigger the appropriate `listenerObj` functions.
@@ -141,6 +148,7 @@ Developers can use this function to wrap a generic callback. This function will 
 * `fArgs`: Map of argument name to values. This will be passed to listeners that are interested in function arguments
 * `fCallback`: The callback function to be wrapped
 
+[[deferredwrapwithargumentsfname-fargs-fcallback-callbackargs]]
 ==== Deferred.wrapWithArguments(fName, fArgs, fCallback, callbackArgs)
 
 Developers can use this function to wrap a generic callback. This function will return a closure which will trigger the appropriate `listenerObj` functions.
@@ -149,12 +157,14 @@ Developers can use this function to wrap a generic callback. This function will 
 * `fArgs`: Map of argument name to values. This will be passed to listeners that are interested in function arguments
 * `fCallback`: The callback function to be wrapped
 
+[[deferredwrapmethodfmethod-argmap-callbackpos]]
 ==== Deferred.wrapMethod(fMethod, argMap, callbackPos)
 
 * `fMethod`: The method to be wrapped
 * `argMap`: Map of argument name to argument positions. This is used to construct the argument map for listeners that are interested in function arguments. If an argument is optional, it should be prefixed with `?`.
 * `callbackPos`: Optional position of the callback function. If not provided, it assumes the last argument is the callback function.
 
+[[deferredwraprequestfmethod-arglist-callbackpos]]
 ==== Deferred.wrapRequest(fMethod, argList, callbackPos)
 
 * `fMethod`: The request method to be wrapped
