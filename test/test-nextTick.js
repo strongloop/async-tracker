@@ -4,26 +4,31 @@ require('../');
 
 var cnt = 0;
 var Listener = function() {
-}
+  var evtName = asyncTracker.events.process.nextTick;
 
-Listener.prototype.deferredCreated = function(fName, fId) {
-  assert.equal(fName, asyncTracker.events.process.nextTick);
-  assert.equal(cnt, 0);
-  cnt++;
-}
+  this.deferredCreated = {};
+  this.invokeDeferred = {};
+  this.deferredReleased = {};
 
-Listener.prototype.invokeDeferred = function(fName, fId, next) {
-  assert.equal(fName, asyncTracker.events.process.nextTick);
-  assert.equal(cnt, 1);
-  cnt++;
-  next();
-}
+  this.deferredCreated[evtName] = function(fName, fId) {
+    assert.equal(fName, evtName);
+    assert.equal(cnt, 0);
+    cnt++;
+  };
 
-Listener.prototype.deferredReleased = function(fName, fId) {
-  assert.equal(fName, asyncTracker.events.process.nextTick);
-  assert.equal(cnt, 3);
-  cnt++;
-}
+  this.invokeDeferred[evtName] = function(fName, fId, next) {
+    assert.equal(fName, evtName);
+    assert.equal(cnt, 1);
+    cnt++;
+    next();
+  };
+
+  this.deferredReleased[evtName] = function(fName, fId) {
+    assert.equal(fName, asyncTracker.events.process.nextTick);
+    assert.equal(cnt, 3);
+    cnt++;
+  };
+};
 
 function cb() {
   assert.equal(cnt, 2);

@@ -4,26 +4,30 @@ require('../');
 
 var cnt = 0;
 var Listener = function() {
-}
+  this.deferredCreated = {};
+  this.invokeDeferred = {};
+  this.deferredReleased = {};
+  var evtName = asyncTracker.events.global.setImmediate;
 
-Listener.prototype.deferredCreated = function(fName, fId) {
-  assert.equal(fName, asyncTracker.events.global.setImmediate);
-  assert.equal(cnt, 0);
-  cnt++;
-}
+  this.deferredCreated[evtName] = function(fName, fId) {
+    assert.equal(fName, evtName);
+    assert.equal(cnt, 0);
+    cnt++;
+  };
 
-Listener.prototype.invokeDeferred = function(fName, fId, next) {
-  assert.equal(fName, asyncTracker.events.global.setImmediate);
-  assert(false, 'should not be called');
-  cnt++;
-  next();
-}
+  this.invokeDeferred[evtName] = function(fName, fId, next) {
+    assert.equal(fName, evtName);
+    assert(false, 'should not be called');
+    cnt++;
+    next();
+  };
 
-Listener.prototype.deferredReleased = function(fName, fId) {
-  assert.equal(fName, asyncTracker.events.global.setImmediate);
-  assert.equal(cnt, 1);
-  cnt++;
-}
+  this.deferredReleased[evtName] = function(fName, fId) {
+    assert.equal(fName, evtName);
+    assert.equal(cnt, 1);
+    cnt++;
+  };
+};
 
 function cb() {
   assert(false, 'should not be called');  
