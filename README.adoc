@@ -56,26 +56,6 @@ The AsyncTracker object is exposed as a global variable named `asyncTracker`.
 `name`: Optional. Listener name for the new listener, or an existing listener which should be replaced.
 `listenerObj`: An object which contains several optional fields. This listener will be associated with all async operations that will be scheduled and all objects that will be created.
 
-* `deferredCreated(fName, cbId, fData)`: A function which is called when an async callback is scheduled.
-** `fName`: A name of the function that scheduled the callback.
-** `cbId`: Unique ID of this callback
-** `fData`: If the listener specified interest in function arguments, `fData` will contain a map of the significant arguments
-* `invokeDeferred(fName, cbId, next)`: A function can intercept the invocation of an async callback. This function behaves similar to Express middleware and you must call `next()` to continue invocation of the callback. Other libraries can use this call to run their own code before and after function execution. They may also choose to wrap the function invocation in a try/catch/finally block to catch and handle exceptions.
-** `fName`: A name of the function that scheduled the callback.
-** `cbId`: Unique ID of this callback
-** `next`: The callback function to execute
-* `deferredReleased(fName, cbId)`: A function
-** `fName`: A name of the function that scheduled the callback.
-** `cbId`: Unique ID of this callback
-* `trackObject(obj)`: A function which is called when an Observable object is created
-** `obj`: The observable object
-* `releaseObject(obj)`: A function which is called when an Observable object is closed, destroyed or, explicitly released.
-** `obj`: The observable object
-
-Returns the name of the listener that was added
-
-WARNING: Be very careful about the implementation of these functions. They will be invoked often and can result in significant performance issues. Calling function that are async from these callbacks can result in an infinite loop
-
 [[asynctrackerremovelistenerlistenername]]
 ==== asyncTracker.removeListener(listenerName)
 
@@ -109,6 +89,85 @@ Called when a function is complete and will no longer be called in the future.
 
 * `fName`: A name of the function that scheduled the callback.
 * `cbId`: Unique ID of this callback
+
+=== Listener Object interface
+
+WARNING: Be very careful about the implementation of these functions. They will be invoked often and can result in significant performance issues. Calling function that are async from these callbacks can result in an infinite loop
+
+=== Listener.deferredCreated
+
+Map of callback functions for events that this Listener is interested in.
+
+Callback:
+
+* `deferredCreated(fName, cbId, fData)`: A function which is called when an async callback is scheduled.
+** `fName`: A name of the function that scheduled the callback.
+** `cbId`: Unique ID of this callback
+** `fData`: If the listener specified interest in function arguments, `fData` will contain a map of the significant arguments
+
+Example:
+
+```
+Listener.deferredCreated[fs.open] = function callback(fName, cbId, fData){...};
+Listener.deferredCreated['default'] = function defaultCallback(fName, cbId, fData){...};
+```
+
+=== Listener.invokeDeferred
+
+Map of callback functions for events that this Listener is interested in.
+
+Callback:
+
+* `invokeDeferred(fName, cbId, next)`: A function can intercept the invocation of an async callback. This function behaves similar to Express middleware and you must call `next()` to continue invocation of the callback. Other libraries can use this call to run their own code before and after function execution. They may also choose to wrap the function invocation in a try/catch/finally block to catch and handle exceptions.
+** `fName`: A name of the function that scheduled the callback.
+** `cbId`: Unique ID of this callback
+** `next`: The callback function to execute
+
+Example:
+
+```
+Listener.invokeDeferred[fs.open] = function callback(fName, cbId, next){...};
+Listener.invokeDeferred['default'] = function defaultCallback(fName, cbId, next){...};
+```
+
+=== Listener.deferredReleased
+
+Map of callback functions for events that this Listener is interested in.
+
+Callback:
+
+* `deferredReleased(fName, cbId)`: A function
+** `fName`: A name of the function that scheduled the callback.
+** `cbId`: Unique ID of this callback
+
+Example:
+
+```
+Listener.deferredReleased[fs.open] = function callback(fName, cbId){...};
+Listener.deferredReleased['default'] = function defaultCallback(fName, cbId){...};
+```
+
+=== Listener.trackObject(obj)
+
+* `trackObject(obj)`: A function which is called when an Observable object is created
+** `obj`: The observable object
+
+Example:
+
+```
+Listener.trackObject = function callback(obj){...};
+```
+
+=== Listener.releaseObject(obj)
+
+* `releaseObject(obj)`: A function which is called when an Observable object is closed, destroyed or, explicitly released.
+** `obj`: The observable object
+
+Example:
+
+```
+Listener.releaseObject = function callback(obj){...};
+```
 
 === AsyncTracker Observable interface
 
