@@ -8,7 +8,7 @@ var Listener = function() {
 }
 
 Listener.prototype.deferredCreated = function(fName, fId, args) {
-  if (fName === 'fs.open') {
+  if (fName === asyncTracker.events.fs.open) {
     assert.equal(cnt, 0);
   } else {
     assert.equal(cnt, 4);
@@ -17,7 +17,7 @@ Listener.prototype.deferredCreated = function(fName, fId, args) {
 }
 
 Listener.prototype.invokeDeferred = function(fName, fId, next) {
-  if (fName === 'fs.open') {
+  if (fName === asyncTracker.events.fs.open) {
     assert.equal(cnt, 2);
   } else {
     assert.equal(cnt, 6);
@@ -27,7 +27,7 @@ Listener.prototype.invokeDeferred = function(fName, fId, next) {
 }
 
 Listener.prototype.deferredReleased = function(fName, fId) {
-  if (fName === 'fs.open') {
+  if (fName === asyncTracker.events.fs.open) {
     assert.equal(cnt, 5);
   } else {
     assert.equal(cnt, 7);

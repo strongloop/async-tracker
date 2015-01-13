@@ -7,20 +7,20 @@ var Listener = function() {
 }
 
 Listener.prototype.deferredCreated = function(fName, fId) {
-  assert.equal(fName, 'setImmediate');
+  assert.equal(fName, asyncTracker.events.global.setImmediate);
   assert.equal(cnt, 0);
   cnt++;
 }
 
 Listener.prototype.invokeDeferred = function(fName, fId, next) {
-  assert.equal(fName, 'setImmediate');
+  assert.equal(fName, asyncTracker.events.global.setImmediate);
   assert(false, 'should not be called');
   cnt++;
   next();
 }
 
 Listener.prototype.deferredReleased = function(fName, fId) {
-  assert.equal(fName, 'setImmediate');
+  assert.equal(fName, asyncTracker.events.global.setImmediate);
   assert.equal(cnt, 1);
   cnt++;
 }
