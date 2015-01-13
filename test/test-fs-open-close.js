@@ -5,45 +5,54 @@ var util = require('util');
 var cnt = 0;
 
 var Listener = function() {
-}
+  var evtName = asyncTracker.events.fs.open;
 
-Listener.prototype.deferredCreated = function(fName, fId, args) {
-  if (fName === asyncTracker.events.fs.open) {
+  this.deferredCreated = {};
+  this.invokeDeferred = {};
+  this.deferredReleased = {};
+
+  this.deferredCreated[evtName] = function(fName, fId, args) {
     assert.equal(cnt, 0);
-  } else {
+    cnt += 1;
+  };
+
+  this.deferredCreated['default'] = function(fName, fId, args) {
     assert.equal(cnt, 4);
-  }
-  cnt += 1;
-}
+    cnt += 1;
+  };
 
-Listener.prototype.invokeDeferred = function(fName, fId, next) {
-  if (fName === asyncTracker.events.fs.open) {
+  this.invokeDeferred[evtName] = function(fName, fId, next) {
     assert.equal(cnt, 2);
-  } else {
+    cnt += 1;
+    next();
+  };
+
+  this.invokeDeferred['default'] = function(fName, fId, next) {
     assert.equal(cnt, 6);
-  }
-  cnt += 1;
-  next();
-}
+    cnt += 1;
+    next();
+  };
 
-Listener.prototype.deferredReleased = function(fName, fId) {
-  if (fName === asyncTracker.events.fs.open) {
+  this.deferredReleased[evtName] = function(fName, fId) {
     assert.equal(cnt, 5);
-  } else {
+    cnt += 1;
+  };
+
+  this.deferredReleased['default'] = function(fName, fId) {
     assert.equal(cnt, 7);
-  }
-  cnt += 1;
-}
+    cnt += 1;
+  };
 
-Listener.prototype.objectCreated = function(obj) {
-  assert.equal(cnt, 1);
-  cnt += 1;
-}
+  this.objectCreated = function(obj) {
+    assert.equal(cnt, 1);
+    cnt += 1;
+  };
 
-Listener.prototype.objectReleased = function(obj) {
-  assert.equal(cnt, 3);
-  cnt += 1;
-}
+  this.objectReleased = function(obj) {
+    assert.equal(cnt, 3);
+    cnt += 1;
+  };
+};
 
 var listener = new Listener();
 asyncTracker.addListener(listener, 'listener');

@@ -3,24 +3,28 @@ require('../index.js');
 
 var cnt=0;
 var Listener = function(_expectEvents) {
-  this.expectEvents = _expectEvents;
-}
+  var evtName = asyncTracker.events.process.nextTick;
+  
+  this.deferredCreated = {};
+  this.invokeDeferred = {};
+  this.deferredReleased = {};
 
-Listener.prototype.deferredCreated = function(fName, fId) {
-  assert(this.expectEvents);
-  cnt++;
-}
+  this.deferredCreated[evtName] = function(fName, fId) {
+    assert(_expectEvents);
+    cnt++;
+  };
 
-Listener.prototype.invokeDeferred = function(fName, fId, next) {
-  assert(this.expectEvents);
-  cnt++;
-  next();
-}
+  this.invokeDeferred[evtName] = function(fName, fId, next) {
+    assert(_expectEvents);
+    cnt++;
+    next();
+  };
 
-Listener.prototype.deferredReleased = function(fName, fId) {
-  assert(this.expectEvents);
-  cnt++;
-}
+  this.deferredReleased[evtName] = function(fName, fId) {
+    assert(_expectEvents);
+    cnt++;
+  };
+};
 
 function cb() {
 }
