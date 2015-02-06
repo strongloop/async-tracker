@@ -14,37 +14,50 @@ API may have a significant performance impact on your application.
 
 == Objectives
 
-The goal of this library is to build a common API which allows creation of node application monitoring tools, exception management, long stack-traces, resource tracking and cleanup etc.
+The goal of this library is to build a common API which allows creation of node
+application monitoring tools, exception management, long stack-traces, resource
+tracking and cleanup etc.
 
-Most of the existing libraries which provide this functionality monkey-patch the node API layer and typically use closures to maintain context across async callbacks.
+Most of the existing libraries which provide this functionality monkey-patch
+the node API layer and typically use closures to maintain context across async
+callbacks.
 
-However when one or more than one of these libraries are used simultaniously, there are drawbacks such as:
+However when one or more of these libraries are used simultaneously, there are
+drawbacks such as:
 
 * speed degradation
 * instability
 * loss of function information such as function.length, function.toString() etc.
 
-Ideally, there would be a common API that other libraries can build upon. The Async Tracker library attempts to do just that by providing a single interface on which other librares can be built. The use-cases captured in Async Tracker include:
+Ideally, there would be a common API that other libraries can build upon. The
+Async Tracker library attempts to do just that by providing a single interface
+on which other libraries can be built. The use-cases captured in Async Tracker
+include:
 
-* Associating context which is carried across async callback boundries
+* Associating context which is carried across async callback boundaries
 * Notification when async callback is scheduled
-** Optinally capturing significant arguments from the parent function
+** Optionally capturing significant arguments from the parent function
 * Notification of callback being triggered
 ** Optionally allow running tasks before and after the callback
 * Notification when a callback is un-scheduled (timers, etc.)
-* Notification when `Observable` object are created or released
+* Notification when `Observable` objects are created or released
 * Enable cleanup of `Disposable` objects
 
-It is meant as a conversation stater and I would like to discuss any missing functionality or other feedback you have around this topic.
+It is meant as a conversation starter and I would like to discuss any missing
+functionality or other feedback you have around this topic.
 
 == API Overview
 
 Async Tracker has 4 core APIs:
 
-. AsyncTracker Listeners: allows developers to register an object which will be notified of events
-. AsyncTracker Observables: allows developers to instrument their classes so they trigger events when they are created or released.
-. AsyncTracker Disposables: allows developers to enable cleanup of their classes. (Zones/Domains)
-. Deferred: allows developers to wrap callback methods so thay trigger events when they are created, invoked or released.
+. AsyncTracker Listeners: allows developers to register an object which will be
+  notified of events
+. AsyncTracker Observables: allows developers to instrument their classes so
+  they trigger events when they are created or released.
+. AsyncTracker Disposables: allows developers to enable cleanup of their
+  classes (used by Zones/Domains).
+. Deferred: allows developers to wrap callback methods so they trigger events
+  when they are created, invoked or released.
 
 === AsyncTracker Listener interface
 
@@ -63,7 +76,7 @@ Prevents the `listenerObj` associated with `listenerName` from being associated 
 
 === AsyncTracker Trigger interface
 
-These methods are intended to be called from inside node modules and will result in currosponding functions on the listener to be triggered.
+These methods are intended to be called from inside node modules and will result in corresponding functions on the listener to be triggered.
 
 [[asynctrackerdeferredcreatedfname-cbid-fdata]]
 ==== AsyncTracker.deferredCreated(fName, cbId, fData)
@@ -192,7 +205,7 @@ This API should be implemented by tracked objects if they wish to be cleaned up 
 [[objectdispose]]
 ==== Object.dispose()
 
-This method is called by Zones or similar libraries when they are exiting and waish to cleanup a tracked object.
+This method is called by Zones or similar libraries when they are exiting and wish to cleanup a tracked object.
 
 === Deferred (Helper API)
 
@@ -232,7 +245,7 @@ Developers can use this function to wrap a generic callback. This function will 
 
 == Implementation
 
-Ideally, all the events generated from this library would happen in core Node code. However, this library has been created using monkey-patching to experiment and stabalize the API before attempting to get in include in node core.
+Ideally, all the events generated from this library would happen in core Node code. However, this library has been created using monkey-patching to experiment and stabilize the API before attempting to get in include in node core.
 
 This library provides a very small subset of the implementation in order to demonstrate the API and concept. The following Node core APIs will need to be patched for a more complete implementation:
 
@@ -247,15 +260,15 @@ This library provides a very small subset of the implementation in order to demo
 * udp
 * zlib
 
-All the Listener calls are executed within the context of the functions creating the deferred callbacks or in the context of the callback execution. Thsi allows libraries built using AsyncTracker to gather whatever structured data they reuire to operate.
+All the Listener calls are executed within the context of the functions creating the deferred callbacks or in the context of the callback execution. This allows libraries built using AsyncTracker to gather whatever structured data they require to operate.
 
-Altough the current code is completly written in JS, the API should be accessable from C/C++ code as well allowing for native modules to be use all AsyncTracker capabilities as long they comply with the interfaces.
+Although the current code is completely written in JS, the API should be accessible from C/C++ code as well allowing for native modules to be use all AsyncTracker capabilities as long they comply with the interfaces.
 
 === Possible optimizations
 
-https://github.com/bnoordhuis[Ben] has written https://github.com/joyent/node/pull/8090[a patch] which builds upon the AsyncWrap API to allow tracking calls across async boundries without having to maintain a closure.
+https://github.com/bnoordhuis[Ben] has written https://github.com/joyent/node/pull/8090[a patch] which builds upon the AsyncWrap API to allow tracking calls across async boundaries without having to maintain a closure.
 
 == Related work
 
-* AsyncWrap is a part of some very useful work that https://github.com/trevnorris[Trevor Norris] did while implementing Async Listener in v0.11. While the https://github.com/joyent/node/pull/8110[JS part of Aync Listeners is being removed], the AsyncWrap C++ classes remain.
+* AsyncWrap is a part of some very useful work that https://github.com/trevnorris[Trevor Norris] did while implementing Async Listener in v0.11. While the https://github.com/joyent/node/pull/8110[JS part of Async Listeners is being removed], the AsyncWrap C++ classes remain.
 * https://github.com/Qard[Stephen Belanger] has also built https://github.com/Qard/stacks-concept[a proof-of-concept API] which attempts to solve some of the same issues as AsyncTracker.
